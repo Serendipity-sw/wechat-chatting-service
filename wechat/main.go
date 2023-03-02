@@ -1,44 +1,35 @@
 package wechat
 
 import (
-	"fmt"
 	"github.com/eatmoreapple/openwechat"
+	"github.com/swgloomy/gutil/glog"
+	"os"
+	"wechat-chatting-service/chatgpt"
 )
 
-func WechatLogin() {
-	bot := openwechat.DefaultBot()
-	// bot := openwechat.DefaultBot(openwechat.Desktop) // 桌面模式，上面登录不上的可以尝试切换这种模式
+func Login() {
+	bot := openwechat.DefaultBot(openwechat.Desktop) // 桌面模式，上面登录不上的可以尝试切换这种模式
 
-	// 注册消息处理函数
 	bot.MessageHandler = func(msg *openwechat.Message) {
-		if msg.IsText() && msg.Content == "ping" {
-			msg.ReplyText("pong")
+		if msg.IsText() && msg.IsSendByFriend() {
+			_, err := msg.ReplyText(chatgpt.AcquireContent(msg.Content))
+			if err != nil {
+				glog.Error("package:wechat func:Login MessageHandler ReplyText run err! err: %+v \n", err)
+				return
+			}
 		}
 	}
-	// 注册登陆二维码回调
 	bot.UUIDCallback = openwechat.PrintlnQrcodeUrl
 
-	// 登陆
 	if err := bot.Login(); err != nil {
-		fmt.Println(err)
+		glog.Error("package:wechat func:Login login run err! err: %+v \n", err)
 		return
 	}
 
-	// 获取登陆的用户
-	self, err := bot.GetCurrentUser()
+	err := bot.Block()
 	if err != nil {
-		fmt.Println(err)
+		glog.Error("package:wechat func:Login Block err! application exit! err: %+v \n", err)
+		os.Exit(1)
 		return
 	}
-
-	// 获取所有的好友
-	friends, err := self.Friends()
-	fmt.Println(friends, err)
-
-	// 获取所有的群组
-	groups, err := self.Groups()
-	fmt.Println(groups, err)
-
-	// 阻塞主goroutine, 直到发生异常或者用户主动退出
-	bot.Block()
 }

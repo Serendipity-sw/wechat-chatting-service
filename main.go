@@ -31,7 +31,7 @@ func main() {
 	readConfig()
 	serverRun(*debugFlag)
 
-	wechat.WechatLogin()
+	wechat.Login()
 
 	c := make(chan os.Signal, 1)
 	gutil.WritePid(pidStrPath)

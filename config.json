@@ -1,3 +1,4 @@
 {
-  "logsDir": "./logs"
+  "logsDir": "./logs",
+  "chatGptSecret": ""
 }
