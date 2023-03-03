@@ -8,6 +8,7 @@ import (
 	"github.com/swgloomy/gutil/glog"
 	"io"
 	"net/http"
+	"net/url"
 )
 
 type chatGptStruct struct {
@@ -54,7 +55,16 @@ func completions(msg string) (string, error) {
 		glog.Error("package:chatgpt func:completions Marshal run err! model: %+v err: %+v \n", payload, err)
 		return "", err
 	}
-	client := http.Client{}
+	uri, err := url.Parse("socket5://127.0.0.1:10808")
+	if err != nil {
+		glog.Error("package:chatgpt func:completions url parse run err! model: %+v err: %+v \n", payload, err)
+		return "", err
+	}
+	client := http.Client{
+		Transport: &http.Transport{
+			Proxy: http.ProxyURL(uri),
+		},
+	}
 	req, err := http.NewRequest(http.MethodPost, "https://api.openai.com/v1/completions", bytes.NewReader(bs))
 	if err != nil {
 		glog.Error("package:chatgpt func:completions NewRequest run err! err: %+v \n", payload, err)
